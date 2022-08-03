@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import Header from "./components/Header";
 import GameBoard from "./components/GameBoard";
 import Card from "./components/Card";
@@ -23,7 +23,7 @@ import Robin from './assets/Robin.svg'
 function App(): JSX.Element {
 
     const [highScore, setHighScore] = useState(0)
-    const [clickList, setClickList] = useState([])
+    const [clickList, setClickList]: [string[], any] = useState([])
     const [cardList, setCardList] = useState([
         {image: Argh, name: 'Argh'},
         {image: Binz, name: 'Binz'},
@@ -43,10 +43,41 @@ function App(): JSX.Element {
         {image: Robin, name: 'Robin'}
     ])
 
-    const convertCards = (cList: Card[]) => {
+
+    useEffect(() => {
+        // if clickList length = 0 > make lose
+        // if clickList length = 16 > make win
+
+
+        if (highScore < clickList.length) {
+            setHighScore(clickList.length)
+        }
+
+        setCardList((carList) => {
+            let random = carList.length - 1
+            let generated
+            for (random; random > 0; random--) {
+                generated = Math.floor(Math.random() * (random + 1));
+                [carList[random], carList[generated]] = [carList[generated], carList[random]]
+            }
+            return carList
+        })
+        // fisher yates
+    }, [clickList])
+
+
+    const handleClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+        const clickedName = (e.target as HTMLButtonElement).children[0].textContent!
+        if (clickList.includes(clickedName)) {
+            setClickList([])
+        } else {
+            setClickList(clickList.concat(clickedName))
+        }
+    }
+    const convertCards = (cList: { image: string, name: string }[]) => {
         return cList.map((card) => {
             const {image, name} = card
-            return (<Card key={name} image={image} name={name}/>)
+            return (<Card key={name} image={image} name={name} handleClick={handleClick}/>)
         })
     }
 
